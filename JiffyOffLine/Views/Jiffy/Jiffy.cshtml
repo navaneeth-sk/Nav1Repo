@@ -1,0 +1,163 @@
+﻿@{ViewBag.Title = "Jiffy";}
+<div style="background-color:gold;width:500px;height:50px">
+    <img src="~/Images/Person_Icon.png" /> ( <span id="divUser"></span> )
+    <span style="margin-left: 180px;margin-top:10px">
+         <img src="~/Images/Jiffy.png" />
+    </span>
+    <div class="approvedClass"></div>
+    <div style="clear: both; margin-left: 57%; margin-right: 6%; margin-top: 0px; z-index: 999999999; position: relative">
+        <div style="display:none;" id="StatusPopup" currentState ="0">
+            <table border="1" style="border-collapse:collapse">
+                <tr style="background-color:chocolate">
+                    <td>Sachin</td>
+                    <td>Tendulkar</td>
+                    <td><img src="~/Images/closecross.png" /></td>
+                </tr>
+                <tr style="background-color:azure">
+                    <td>Navaneeth</td>
+                    <td>S</td>
+                    <td><img src="~/Images/closecross.png" /></td>
+                </tr>
+                <tr style="background-color:chocolate">
+                     <td>Roger</td>
+                     <td>Federer</td>
+                     <td><img src="~/Images/closecross.png" /></td>
+                </tr>
+                <tr style="background-color:azure">
+                    <td>Sourav</td>
+                    <td>Ganguly</td>
+                    <td><img src="~/Images/closecross.png" /></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div id="divButtonCaption" style="visibility:hidden;width:50px"></div>
+</div><br />
+<div style="z-index:300"><font style="font-family:Verdana;font-weight:bold">Project: </font>@Html.DropDownList("ddProjects", "-- Select --") &nbsp; &nbsp; <font style="font-family:Verdana;font-weight:bold">
+    Activities:</font>@Html.DropDownList("ddActivities", " -- Select -- ")</div>
+    <br />
+    <br />
+    <div class="clock"></div>
+    <div style="width:500px"><button onclick="ToggleClock(this)" state="0" class="stopWatch JiffyButtonStart" style="width:130px;height:50px;margin-left:180px"></button></div>
+
+    <script type="text/javascript">
+
+        var clock;
+        $(document).ready(function () {
+            clock = new FlipClock($('.clock'), { autoStart: false });
+            //clock.setTime(3600);
+        });
+
+        function ToggleClock(elem) {
+            var buttonCaptionText;
+            var button = $(elem);
+            if (button.attr("state") == '0') {
+                $(elem).val("Pause");
+                //$(elem).text("Pause");
+                $(elem).removeClass("JiffyButtonStart");
+                $(elem).addClass("JiffyButtonPause");
+                divButtonCaption.innerText = "Pause";
+                $(elem).attr("state", '1');
+                clock.start();
+            }
+            else {
+                $(elem).val("Start");
+                //$(elem).text("Start");
+                $(elem).removeClass("JiffyButtonPause");
+                $(elem).addClass("JiffyButtonStart");
+                divButtonCaption.innerText = "Start";
+                $(elem).attr("state", '0');
+                clock.stop();
+            }
+            buttonCaptionText = document.getElementById("divButtonCaption").innerText;
+            //alert(buttonCaptionText);
+            InsertScreenData(buttonCaptionText);
+
+        }
+
+        //To receive data from the Host Application(which is our Web application)
+        function ToggleClockFromHost() {
+            ToggleClock($(".stopWatch"));
+        }
+
+        //To send data to the Host Application (which is our WPF Server)
+        function SendTime() {
+            //alert(clock.getTime());
+            window.Host.ProcessData(clock.getTime())
+
+
+        }
+        function DisplayLoggedUserName(userName) {
+            divUser.innerText = userName;
+        }
+        function InsertScreenData(buttonCaptionText) {
+            //Function used to capture the UI data and send it to the Off-line DB
+            var project = document.getElementById("ddProjects");
+            var activities = document.getElementById("ddActivities");
+            var projId = project.options[project.selectedIndex].value;
+            var activityId = activities.options[activities.selectedIndex].value;
+            var clockValue = clock.getTime();
+            var hour = Math.floor(clockValue / 3600);
+            var min = Math.floor((clockValue % 3600) / 60)
+            var sec = clockValue % 3600 % 60
+            var milliSecond = "000";
+            var totalTime;
+            totalTime = hour + ":" + min + ":" + sec + "." + milliSecond;
+            var buttonCaption = buttonCaptionText;
+            //alert(totalTime);
+            //alert(Date.toString);
+            var uiData = {
+                UserId: document.getElementById("divUser").innerText,
+                ProjectId: projId,
+                ActivityId: activityId,
+                ActivityDuration: clockValue
+            };
+            var data = uiData.UserId + "|" + uiData.ProjectId + "|" + uiData.ActivityId + "|" + uiData.ActivityDuration;
+            //alert(data);
+            return window.external.CallBrowserJSFunction(data, buttonCaption);
+        }
+
+        //var menuClick = function () {
+        //    var mnuLeftPosition0 = document.getElementById("menuEdit").offsetHeight;//16
+        //    var mnuLeftPosition1 = document.getElementById("menuEdit").offsetLeft;//480
+        //    var mnuLeftPosition2 = document.getElementById("menuEdit").offsetTop;//42
+        //    alert(mnuLeftPosition0);
+        //    alert(mnuLeftPosition1);
+        //    alert(mnuLeftPosition2);
+        //    document.getElementById("divMenu").offsetLeft = 400;
+            
+
+        //}
+
+        jQuery().ready(function domReady($) {
+            //alert('hi');
+            $(document).keyup(function (e) {
+                if (e.keyCode == 27) $('#StatusPopup').css('display', 'none');   // esc
+            });
+            $('#StatusPopup').click(function () {
+              
+                
+            });
+            $('.approvedClass').click (function () {
+                //var position = $(this).offset();
+                //var left = position.left - 200;
+                //var bottom = position.bottom - 7;
+                //alert($(StatusPopup).attr("currentState"));
+                if ($("#StatusPopup").attr("currentState") == "0") {
+                    $('#StatusPopup').css('display', 'none');
+                    $("#StatusPopup").attr("currentState", "1")
+                    $("#StatusPopup").slideDown('slow', 'linear');
+                }
+                else {
+                    $('#StatusPopup').css('display', 'none');
+                    $("#StatusPopup").attr("currentState", "0")
+
+                }
+             
+
+            });
+
+        });
+
+
+    </script>
