@@ -17,6 +17,8 @@ namespace JiffyOffLine.Controllers
         public ActionResult Index()
         {
             return View();
+
+            //added this comment for GitHub
         }
     
         [HttpGet]
